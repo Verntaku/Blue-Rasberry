@@ -1,3 +1,4 @@
+#This is a AI instance. Only for practice with how to learn to code better. No copying nessecaery.
 import random
 import time
 
