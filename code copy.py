@@ -6,9 +6,9 @@ import time
 def start():
     turtle.speed(10) 
     turtle.circle(100)
-    turtle.penup()
-    turtle.goto(-150, 0)
-    turtle.pendown()
+    turtle.goto(0,50)
     turtle.circle(50)
+    turtle.write("The number game", align="Center")
     
-turtle.
+start()
+turtle.mainloop()
