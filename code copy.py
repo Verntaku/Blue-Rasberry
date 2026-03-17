@@ -34,8 +34,6 @@ turtle.penup()
 turtle.goto(-270,-90)
 turtle.write("The game will start in 5 seconds!",font=("Arial", 30, "normal"))
 time.sleep(3)
-
-
 turtle.clearscreen()
 
 
