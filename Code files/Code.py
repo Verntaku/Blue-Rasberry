@@ -101,16 +101,16 @@ def game():
     if total_score >= max_levels * 60:
         print("  AMAZING performance! You're a legend!")
     elif total_score >= max_levels * 30:
-        print("  Good job! Keep practicing!")
-    else:
-        print("  Nice try — come back for revenge!")
-    print("=" * 40)
-
-    again = input("\nPlay again? (y/n): ").strip().lower()
+        printnput("\nPlay again? (y/n): ").strip().lower()
     if again == "y":
         game()
     else:
         print(f"\nThanks for playing, {name}! See you next time!")
 
 if __name__ == "__main__":
-    game()
+    game()("  Good job! Keep practicing!")
+    else:
+        print("  Nice try — come back for revenge!")
+    print("=" * 40)
+
+    again = i
