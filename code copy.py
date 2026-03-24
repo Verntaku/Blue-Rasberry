@@ -1,164 +1,245 @@
-#This is a non AI Session instance. Practice makes perfect.
 import turtle
 import random
 import time
+import math
+
+# --- Screen Setup ---
+screen = turtle.Screen()
+screen.title("The Number Game")
+screen.bgcolor("black")
+screen.setup(width=800, height=600)
+
+# Single turtle used for all text drawing
+writer = turtle.Turtle()
+writer.hideturtle()
+writer.penup()
+writer.speed(0)
+
+def clear():
+    writer.clear()
+
+def write_at(x, y, text, color="white", font=("Arial", 16, "normal")):
+    writer.color(color)
+    writer.goto(x, y)
+    writer.write(text, align="left", font=font)
+
+def draw_eye():
+    eye = turtle.Turtle()
+    eye.hideturtle()
+    eye.speed(0)
+    eye.penup()
+    cx, cy = 0, -120
+
+    # Eye white 
+    eye.color("#c0c0c0")
+    eye.begin_fill()
+    for i in range(101):
+        angle = 2 * math.pi * i / 100
+        x = cx + 165 * math.cos(angle)
+        y = cy + 90 * math.sin(angle)
+        eye.goto(x, y) if i else (eye.penup(), eye.goto(x, y), eye.pendown())
+    eye.end_fill()
+
+    # eye pt 1
+    eye.penup()
+    eye.goto(cx, cy - 78)
+    eye.color("black")
+    eye.begin_fill()
+    eye.circle(78)
+    eye.end_fill()
+
+    # eye
+    for (hx, hy, hr) in [(-28, cy + 18, 9), (18, cy + 24, 5)]:
+        eye.penup()
+        eye.goto(hx, hy)
+        eye.color("white")
+        eye.begin_fill()
+        eye.circle(hr)
+        eye.end_fill()
+
+    return eye
 
 # --- Intro Animation ---
-# Draws two circles and a title on the turtle screen as an intro
 def start():
-    turtle.speed(10)
-    turtle.circle(100)       # Draw outer circle
-    turtle.goto(0,50)
-    turtle.circle(50)        # Draw inner circle
-    turtle.penup()
-    turtle.goto(0,90)
-    turtle.write("The number game", align="center")  # Write the title
-    turtle.hideturtle()      # Hide the arrow cursor when done
-
-start()
-
-# This is where the code for the input of the game begins.
-screen = turtle.Screen()
-# Ask the player to choose a difficulty level via a popup box
-level=screen.textinput("Enter the level you want to play", "1 for easy, 2 for medium, 3 for hard")
-
-# Returns the max number, number of lives, and difficulty name based on the player's choice
-def get_difficulty():
-    if level == "1":
-        return 50, 10, "Easy"    # Small range, more lives
-    elif level == "3":
-        return 200, 5, "Hard"   # Large range, fewer lives
-    else:
-        return 100, 7, "Medium" # Default to medium if anything else is entered
-
-# Show the player what level they entered on the turtle screen
-turtle.penup()
-turtle.goto(-40,75)
-turtle.write(f"You entered: {level}")
-
-# Display a countdown message before the game starts
-turtle.penup()
-turtle.goto(-270,-90)
-turtle.write("The game will start in 5 seconds!",font=("Arial", 30, "normal"))
-time.sleep(5)
-turtle.clearscreen()  # Clear the turtle window before switching to the console game
+    intro = turtle.Turtle()
+    intro.speed(10)
+    intro.color("Red")
+    intro.penup()
+    intro.goto(0, -50)
+    intro.pendown()
+    intro.circle(100)
+    intro.penup()
+    intro.goto(0, 0)
+    intro.pendown()
+    intro.circle(50)
+    intro.penup()
+    intro.goto(0, 25)
+    intro.color("yellow")
+    intro.write("The Number Game", align="center", font=("Arial", 24, "bold"))
+    intro.hideturtle()
+    time.sleep(2)
+    intro.clear()
 
 # --- Hint System ---
-# Takes the player's guess and the secret number and returns a hot/cold hint
 def hint(guess, secret):
-    diff = abs(guess - secret)  # How far off the guess is
+    diff = abs(guess - secret)
     if diff == 0:
-        return "Exactly right!"
+        return "Exactly right!", "Green"
     elif diff <= 5:
-        return "Scorching hot!"
+        return "STILL NOT CLOSE DUMMY!", "red"
     elif diff <= 15:
-        return "Very warm!"
+        return "I guess thats close...", "orange"
     elif diff <= 30:
-        return "Warm..."
+        return "Eh...", "yellow"
     elif diff <= 60:
-        return "Cold."
+        return "NAH.", "White"
     else:
-        return "Freezing!"
+        return "Freezing!", "lightblue"
 
-# --- Single Round Logic ---
-# Handles one round of the guessing game; returns whether the player won and their score
-def play_round(round_num, high, lives):
-    secret = random.randint(1, high)  # Pick a random secret number
+# --- Single Round ---
+def play_round(round_num, high, lives, name, total_score):
+    secret = random.randint(1, high)
     remaining = lives
-    guesses = []  # Track all guesses made this round
-
-    print(f"\n--- Level {round_num} ---")
-    print(f"Guess a number between 1 and {high}. You have {lives} lives.")
+    guesses = []
 
     while remaining > 0:
-        try:
-            raw = input(f"\n[Lives: {remaining}] Your guess: ").strip()
-            guess = int(raw)  # Convert input to an integer
-        except ValueError:
-            print("Please enter a valid number.")
-            continue  # Ask again if input wasn't a number
+        clear()
+        write_at(-390, 260, f"Round {round_num}  |  Player: {name}  |  Score: {total_score}",
+                 color="yellow", font=("Arial", 14, "normal"))
+        write_at(-390, 225, f"Guess a number between 1 and {high}",
+                 color="white", font=("Arial", 16, "normal"))
+        write_at(-390, 190, f"Lives: {'♥ ' * remaining}",
+                 color="red", font=("Arial", 16, "normal"))
+        if guesses:
+            write_at(-390, 155, f"Previous guesses: {', '.join(map(str, guesses))}",
+                     color="gray", font=("Arial", 13, "normal"))
 
-        # Make sure the guess is within the valid range
-        if guess < 1 or guess > high:
-            print(f"Out of range! Pick between 1 and {high}.")
+        raw = screen.numinput(
+            f"Round {round_num} — Lives: {remaining}",
+            f"Guess a number between 1 and {high}:",
+            minval=1, maxval=high
+        )
+
+        if raw is None:
+            # Player closed the dialog — count as a skip
+            remaining -= 1
             continue
 
+        guess = int(raw)
         guesses.append(guess)
-        h = hint(guess, secret)
-        print(f"  {h}", end="  ")
+        h, color = hint(guess, secret)
+
+        clear()
+        write_at(-390, 260, f"Round {round_num}  |  Player: {name}  |  Score: {total_score}",
+                 color="yellow", font=("Arial", 14, "normal"))
+        write_at(-390, 225, f"Guess a number between 1 and {high}",
+                 color="white", font=("Arial", 16, "normal"))
+        write_at(-390, 190, f"Lives: {'*' * remaining}",
+                 color="red", font=("Arial", 16, "normal"))
+        write_at(-390, 155, f"Previous guesses: {', '.join(map(str, guesses))}",
+                 color="gray", font=("Arial", 13, "normal"))
+        write_at(-390, 110, f"Hint: {h}", color=color, font=("Arial", 22, "bold"))
 
         if guess == secret:
-            # Score = lives remaining * 10 + bonus for guessing quickly
             score = remaining * 10 + max(0, (5 - len(guesses)) * 5)
-            print(f"\nCorrect! The number was {secret}.")
-            print(f"You got it in {len(guesses)} guess(es). +{score} points!")
+            write_at(-390, 60,  f"Correct! The number was {secret}!", color="lime",   font=("Arial", 18, "bold"))
+            write_at(-390, 25,  f"Guessed in {len(guesses)} try/tries. +{score} points!", color="white", font=("Arial", 15, "normal"))
+            time.sleep(2)
             return True, score
-
         elif guess < secret:
-            print("Go higher! ↑")
+            write_at(-390, 60, "Go higher!  ↑", color="orange", font=("Arial", 17, "normal"))
         else:
-            print("Go lower! ↓")
+            write_at(-390, 60, "Go lower!  ↓", color="orange", font=("Arial", 17, "normal"))
 
-        remaining -= 1  # Use up a life after each wrong guess
+        remaining -= 1
+        time.sleep(1.2)
 
-    print(f"\nOut of lives! The number was {secret}.")
-    return False, 0  # Player lost this round
+    clear()
+    write_at(-390, 100, f"Out of lives!  The number was {secret}.",
+             color="red", font=("Arial", 18, "bold"))
+    time.sleep(2)
+    return False, 0
 
-# --- Banner ---
-# Prints a decorative title header to the console
-def banner():
-    print("=" * 40)
-    print("        THE NUMBER GAME")
-    print("=" * 40)
-
-# --- Main Game Loop ---
-# Runs the full game: intro, all rounds, score summary, and play again prompt
+# --- Main Game ---
 def game():
-    banner()
-    name = input("\nWhat's your name? ").strip() or "Player"  # Default to "Player" if blank
-    print(f"\nWelcome, {name}!")
-    time.sleep(0.5)
+    start()
 
-    high, lives, diff_name = get_difficulty()  # Unpack difficulty settings
+    name = screen.textinput("Welcome!", "What's your name?") or "Player"
+
+    # If the user typed a number instead of a name — trigger the creepy sequence
+    try:
+        float(name.strip())
+        is_num = True
+    except (ValueError, TypeError):
+        is_num = False
+
+    if is_num:
+        clear()
+        write_at(-340, 180, "This isn't that type of game.", color="white", font=("Arial", 22, "bold"))
+        write_at(-110, 130, "I see you", color="red", font=("Arial", 28, "bold"))
+        eye_turtle = draw_eye()
+        time.sleep(10)
+        eye_turtle.clear()
+        clear()
+        screen.bye()
+        return
+
+    level = screen.textinput("Choose Difficulty",
+                             "Enter level:\n  1 = Easy (1–50, 10 lives)\n  2 = Medium (1–100, 7 lives)\n  3 = Hard (1–200, 5 lives)")
+
+    if level == "1":
+        high, lives, diff_name = 50, 10, "Easy"
+    elif level == "3":
+        high, lives, diff_name = 200, 5, "Hard"
+    else:
+        high, lives, diff_name = 100, 7, "Medium"
+
+    max_levels = 5
     total_score = 0
-    max_levels = 5  # Total number of rounds per game
 
-    print(f"\nDifficulty: {diff_name} | {max_levels} rounds to play. Good luck!\n")
-    time.sleep(1)
+    clear()
+    write_at(-390, 260, f"Welcome, {name}!", color="cyan", font=("Arial", 24, "bold"))
+    write_at(-390, 215, f"Difficulty: {diff_name}  |  {max_levels} rounds  |  Numbers 1–{high}", color="white", font=("Arial", 16, "normal"))
+    write_at(-390, 175, "Good luck!", color="yellow", font=("Arial", 18, "normal"))
+    time.sleep(2.5)
 
-    # Loop through each round
     for round_num in range(1, max_levels + 1):
-        won, points = play_round(round_num, high, lives)
+        won, points = play_round(round_num, high, lives, name, total_score)
         total_score += points
         if not won:
-            print(f"Better luck next round! Score so far: {total_score}")
+            clear()
+            write_at(-390, 100, f"Bad luck this round!  Score so far: {total_score}",
+                     color="orange", font=("Arial", 16, "normal"))
+            time.sleep(2)
 
-    # Show end-of-game summary
-    print("\n" + "=" * 40)
-    print(f"  Game Over, {name}!")
-    print(f"  Final Score: {total_score} / {max_levels * (lives * 10 + 20)}")
+    # End-of-game summary
+    max_possible = max_levels * (lives * 10 + 20)
+    clear()
+    write_at(-390, 260, "=" * 44, color="yellow", font=("Arial", 14, "normal"))
+    write_at(-300, 220, f"Game Over, {name}!", color="cyan", font=("Arial", 24, "bold"))
+    write_at(-390, 175, f"Final Score: {total_score} / {max_possible}", color="white", font=("Arial", 18, "bold"))
 
-    # Give a performance message based on the score
     if total_score >= max_levels * 60:
-        print("  AMAZING performance! You're a legend!")
+        msg, col = "AMAZING performance!  You're a legend!", "gold"
     elif total_score >= max_levels * 30:
-        print("  Good job! Keep practicing!")
+        msg, col = "Good job!  Keep practicing!", "lime"
     else:
-        print("  Nice try — come back for revenge!")
-    print("=" * 40)
+        msg, col = "Nice try — come back for revenge!", "orange"
 
-    # Ask if the player wants to play again
-    again = input("\nPlay again? (y/n): ").strip().lower()
-    if again == "y":
-        game()  # Restart the game
+    write_at(-390, 130, msg, color=col, font=("Arial", 16, "bold"))
+    write_at(-390, 85,  "=" * 44, color="yellow", font=("Arial", 14, "normal"))
+
+    again = screen.textinput("Play Again?", "Play again? (y / n):")
+    if again and again.strip().lower() == "y":
+        clear()
+        game()
     else:
-        print(f"\nThanks for playing, {name}! See you next time!")
+        clear()
+        write_at(-350, 0, f"Thanks for playing, {name}!  See you next time!",
+                 color="cyan", font=("Arial", 18, "normal"))
+        time.sleep(3)
+        screen.bye()
 
-# Only run the game if this file is executed directly (not imported)
 if __name__ == "__main__":
     game()
-
-
-
-
-#Turning things into turtle.
+    turtle.mainloop()
