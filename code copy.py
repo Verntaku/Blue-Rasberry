@@ -157,3 +157,8 @@ def game():
 # Only run the game if this file is executed directly (not imported)
 if __name__ == "__main__":
     game()
+
+
+
+
+#Turning things into turtle.
